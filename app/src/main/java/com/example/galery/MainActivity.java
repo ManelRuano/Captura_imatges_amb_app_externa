@@ -2,7 +2,7 @@ package com.example.galery;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.net.Uri;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.widget.Button;
@@ -15,7 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 public class MainActivity extends AppCompatActivity {
 
     private ImageView imageView;
-    private ActivityResultLauncher<Intent> someActivityResultLauncher;
+    private ActivityResultLauncher<Intent> takePictureLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,23 +24,26 @@ public class MainActivity extends AppCompatActivity {
 
         imageView = findViewById(R.id.imageView);
 
-        Button buttonOpenGallery = findViewById(R.id.buttonOpenGallery);
-        buttonOpenGallery.setOnClickListener(v -> openGallery());
+        Button buttonTakePhoto = findViewById(R.id.buttonTakePhoto);
+        buttonTakePhoto.setOnClickListener(v -> takePhoto());
 
-        someActivityResultLauncher = registerForActivityResult(
+        takePictureLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
                     if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
-                        Uri selectedImageUri = result.getData().getData();
-                        if (selectedImageUri != null) {
-                            imageView.setImageURI(selectedImageUri);
+                        Bundle extras = result.getData().getExtras();
+                        if (extras != null && extras.containsKey("data")) {
+                            Bitmap imageBitmap = (Bitmap) extras.get("data");
+                            if (imageBitmap != null) {
+                                imageView.setImageBitmap(imageBitmap);
+                            }
                         }
                     }
                 });
     }
 
-    private void openGallery() {
-        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        someActivityResultLauncher.launch(intent);
+    private void takePhoto() {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        takePictureLauncher.launch(takePictureIntent);
     }
 }
